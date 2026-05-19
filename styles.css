@@ -1,0 +1,587 @@
+/* =============================================================================
+   Sqills News prototype — Design System v2 application
+   -----------------------------------------------------------------------------
+   Tokens approximated from tech/instructions/design-system-v2.md.
+   Real Figma tokens (file XyEzG7Ym7CuodjLSMv4XIM) win when porting to production.
+   ============================================================================= */
+
+:root {
+  /* — Color — primitives (approximations from DS v2 MD) ——————————————— */
+  --primary-50:  #FDF1E1;
+  --primary-100: #FBE0BD;
+  --primary-300: #F2A55C;
+  --primary-500: #EC6E00;   /* brand beacon — Sqills orange */
+  --primary-600: #C75D00;
+  --primary-700: #9F4900;
+
+  --neutral-0:   #FFFFFF;
+  --neutral-50:  #F8F1E1;   /* canvas */
+  --neutral-100: #F1E9D6;
+  --neutral-200: #EAE1CD;
+  --neutral-300: #D6CAA8;
+  --neutral-400: #B5A484;
+  --neutral-500: #8B7B5C;
+  --neutral-700: #4D4131;
+  --neutral-900: #1A1310;
+
+  --ivory: #FAF1E2;
+
+  /* — Color — semantic aliases (consumed by product) ——————————————— */
+  --surface-canvas:   var(--neutral-50);
+  --surface-default:  var(--neutral-0);
+  --surface-subtle:   var(--neutral-100);
+  --surface-muted:    var(--neutral-200);
+  --surface-inverse:  var(--neutral-900);
+  --surface-brand:    var(--primary-500);
+
+  --text-primary:     var(--neutral-900);
+  --text-body:        var(--neutral-700);
+  --text-secondary:   var(--neutral-500);
+  --text-tertiary:    var(--neutral-400);
+  --text-inverse:     var(--ivory);
+  --text-brand:       var(--primary-500);
+  --text-link:        var(--primary-600);
+
+  --border-subtle:    rgba(77, 65, 49, 0.08);
+  --border-default:   var(--neutral-200);
+  --border-strong:    var(--neutral-300);
+  --border-brand:     var(--primary-500);
+
+  /* — Gradient — six stops, brand signature only ——————————————— */
+  --g1: #FAEFD6;
+  --g2: #F2D89B;
+  --g3: #EFC368;
+  --g4: #E89A2F;
+  --g5: #E97F1D;
+  --g6: #E2620F;
+
+  /* — Typography ——————————————— */
+  --font-display: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui:      "Inter",   system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* — Spacing — 4px base, DS v2 token names ——————————————— */
+  --s-2:  2px;
+  --s-4:  4px;
+  --s-8:  8px;
+  --s-10: 10px;
+  --s-12: 12px;
+  --s-14: 14px;
+  --s-16: 16px;
+  --s-20: 20px;
+  --s-24: 24px;
+  --s-28: 28px;
+  --s-32: 32px;
+  --s-40: 40px;
+  --s-52: 52px;
+  --s-80: 80px;
+
+  /* — Radius — binary rule: sharp = structure, rounded = interactive ——— */
+  --r-none:        0;
+  --r-interactive: 14px;
+  --r-field:       8px;
+  --r-pill:        999px;
+
+  /* — Elevation — stacked under-shadow (hard slab, not diffused) ——————— */
+  --shadow-stack-neutral:         0 2px 0 var(--surface-muted);
+  --shadow-stack-neutral-pressed: 0 1px 0 var(--surface-muted);
+  --shadow-stack-cta:             0 2px 0 var(--primary-700);
+  --shadow-stack-cta-pressed:     0 1px 0 var(--primary-700);
+  --shadow-bloom-cta:             0 0 26px rgba(236, 110, 0, 0.22);
+
+  /* — Layout ——————————————— */
+  --phone-w:   430px;
+  --tabs-h:    64px;
+  --band-h:    10px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--surface-muted);  /* page bg outside phone container */
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* — Phone container — */
+.phone {
+  position: relative;
+  max-width: var(--phone-w);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--surface-canvas);
+  padding-bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px));
+  border-left: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* — Identity Band — 10px gradient strip (no bloom, no animation) — */
+.identity-band {
+  height: var(--band-h);
+  background: linear-gradient(90deg,
+    var(--g1) 0%, var(--g2) 20%, var(--g3) 40%,
+    var(--g4) 60%, var(--g5) 80%, var(--g6) 100%);
+}
+
+/* ============================================================================
+   App header
+   ============================================================================ */
+
+.app-header {
+  padding: var(--s-24) var(--s-24) var(--s-16);
+}
+.app-header-article {
+  padding: var(--s-12) var(--s-16) var(--s-12);
+  display: flex;
+  align-items: center;
+  gap: var(--s-12);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.eyebrow {
+  margin: 0 0 var(--s-8);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.screen-title {
+  margin: 0 0 var(--s-8);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--text-primary);
+}
+
+.screen-sub {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text-body);
+}
+
+/* — Back button (Article header) — DS Back Button shape — */
+.back-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-default);
+  border-radius: var(--r-interactive);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-stack-neutral);
+  font-size: 18px;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  transition: transform 90ms ease, box-shadow 90ms ease;
+}
+.back-button:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-stack-neutral-pressed);
+}
+.header-mark {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.header-spacer { flex: 1; }
+
+/* ============================================================================
+   Filters — Tag pattern (radius/pill, dense wrap-style)
+   ============================================================================ */
+
+.filters {
+  display: flex;
+  gap: var(--s-8);
+  padding: 0 var(--s-24) var(--s-16);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-default);
+  color: var(--text-body);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-pill);
+  padding: var(--s-10) var(--s-16);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: var(--shadow-stack-neutral);
+  transition: transform 90ms ease, box-shadow 90ms ease, background 120ms ease, color 120ms ease;
+}
+.tag:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-stack-neutral-pressed);
+}
+.tag-active {
+  background: var(--surface-brand);
+  color: var(--text-inverse);
+  border-color: var(--surface-brand);
+  box-shadow: var(--shadow-stack-cta), var(--shadow-bloom-cta);
+}
+.tag-active:active {
+  box-shadow: var(--shadow-stack-cta-pressed);
+}
+
+/* ============================================================================
+   Feed cards (Card pattern — sharp container)
+   ============================================================================ */
+
+.feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.card {
+  display: block;
+  padding: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  transition: background 120ms ease;
+}
+.card:first-child {
+  border-top: 1px solid var(--border-subtle);
+}
+.card:active { background: var(--surface-subtle); }
+
+.card-body {
+  padding: var(--s-20) var(--s-24) var(--s-24);
+}
+
+.card-hero {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--surface-subtle);
+  overflow: hidden;
+  /* sharp corners — DS binary rule: container = radius/none */
+}
+.card-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 200ms ease;
+}
+.card:active .card-hero img { transform: scale(1.02); }
+.card-hero-broken { display: none; }
+
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+  margin-bottom: var(--s-10);
+}
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--s-10);
+  background: var(--primary-50);
+  color: var(--primary-700);
+  border: 1px solid rgba(236, 110, 0, 0.18);
+  border-radius: var(--r-pill);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.card-category {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.card-date {
+  margin-left: auto;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.card-title {
+  margin: 0 0 var(--s-8);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.22;
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+}
+
+.card-dek {
+  margin: 0 0 var(--s-10);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-top: var(--s-4);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-brand);
+  letter-spacing: 0.02em;
+}
+.card-cta::after {
+  content: "→";
+  transition: transform 150ms ease;
+}
+.card:active .card-cta::after { transform: translateX(3px); }
+
+.empty {
+  padding: var(--s-52) var(--s-24);
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.end-note {
+  margin: var(--s-28) var(--s-24) 0;
+  text-align: center;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   Article page
+   ============================================================================ */
+
+.article {
+  padding: var(--s-24) var(--s-24) var(--s-40);
+  overflow-x: hidden;  /* contain the full-bleed hero negative-margin */
+}
+
+.article-hero {
+  width: calc(100% + (var(--s-24) * 2));
+  margin: calc(-1 * var(--s-24)) calc(-1 * var(--s-24)) var(--s-24);
+  aspect-ratio: 16 / 9;
+  background: var(--surface-subtle);
+  overflow: hidden;
+}
+.article-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.article-hero-broken { display: none; }
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-8);
+  margin-bottom: var(--s-14);
+}
+
+.article-title {
+  margin: 0 0 var(--s-16);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 32px;
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+  color: var(--text-primary);
+}
+
+.article-dek {
+  margin: 0 0 var(--s-28);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+
+.article-body {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+.article-body p { margin: 0 0 var(--s-16); }
+
+/* — Outbound block — DS Card (sharp) + Primary CTA inside — */
+.outbound {
+  display: block;
+  margin-top: var(--s-32);
+  padding: var(--s-20);
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--r-none);
+  color: var(--text-primary);
+}
+.outbound-eyebrow {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: var(--s-4);
+}
+.outbound-source {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: var(--s-4);
+}
+.outbound-domain {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: var(--s-16);
+}
+
+.cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-8);
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--s-24);
+  background: var(--surface-brand);
+  color: var(--text-inverse);
+  border: 0;
+  border-radius: var(--r-interactive);
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  text-align: center;
+  box-shadow: var(--shadow-stack-cta), var(--shadow-bloom-cta);
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 150ms ease;
+}
+.cta-primary:hover { filter: brightness(1.04); }
+.cta-primary:active {
+  transform: translateY(1px);
+  box-shadow: var(--shadow-stack-cta-pressed);
+}
+.cta-primary::after {
+  content: "↗";
+  font-family: var(--font-ui);
+}
+
+.attr-note {
+  margin-top: var(--s-24);
+  padding-top: var(--s-16);
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-tertiary);
+}
+
+/* ============================================================================
+   Bottom tabs (mobile — fixed)
+   ============================================================================ */
+
+.bottom-tabs {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--phone-w);
+  height: calc(var(--tabs-h) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--surface-default);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  z-index: 20;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  position: relative;
+}
+.tab-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  /* pixel-block — image-rendering hint for crisp small squares */
+  image-rendering: pixelated;
+}
+.tab-active { color: var(--text-brand); }
+.tab-active .tab-dot { background: currentColor; }
+
+/* ============================================================================
+   Responsive — collapse phone-frame on small screens
+   ============================================================================ */
+
+@media (max-width: 480px) {
+  .phone {
+    border-left: 0;
+    border-right: 0;
+    max-width: 100%;
+  }
+  .bottom-tabs {
+    max-width: 100%;
+  }
+  .screen-title { font-size: 32px; }
+  .article-title { font-size: 28px; }
+}

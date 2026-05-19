@@ -1,0 +1,15 @@
+{
+  "name": "sqills-news-proto",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sqills News tab prototype + refresh script. Local-only.",
+  "scripts": {
+    "refresh": "node refresh.mjs",
+    "serve": "python3 -m http.server 8791"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "rss-parser": "^3.13.0"
+  }
+}

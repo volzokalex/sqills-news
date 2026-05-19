@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F8F1E1" />
+  <title>News — Sqills</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="phone">
+    <div class="identity-band" aria-hidden="true"></div>
+
+    <header class="app-header">
+      <p class="eyebrow">News</p>
+      <h1 class="screen-title">What changed in AI</h1>
+      <p class="screen-sub">Daily picks. Two minutes each. No hype.</p>
+    </header>
+
+    <nav class="filters" aria-label="News filters">
+      <button class="tag tag-active" data-filter="all" type="button">All</button>
+      <button class="tag" data-filter="Anthropic" type="button">Anthropic</button>
+      <button class="tag" data-filter="DeepMind" type="button">DeepMind</button>
+      <button class="tag" data-filter="Hugging Face" type="button">Hugging Face</button>
+    </nav>
+
+    <main class="feed" id="feed" aria-label="News feed">
+      <!-- cards rendered by app.js -->
+    </main>
+
+    <p class="end-note" id="end-note">That's everything in this batch. New drops daily.</p>
+
+    <nav class="bottom-tabs" aria-label="Primary">
+      <a class="tab" href="#">
+        <span class="tab-dot" aria-hidden="true"></span>
+        <span class="tab-label">Learn</span>
+      </a>
+      <a class="tab" href="#">
+        <span class="tab-dot" aria-hidden="true"></span>
+        <span class="tab-label">Hacks</span>
+      </a>
+      <a class="tab tab-active" href="index.html" aria-current="page">
+        <span class="tab-dot" aria-hidden="true"></span>
+        <span class="tab-label">News</span>
+      </a>
+      <a class="tab" href="#">
+        <span class="tab-dot" aria-hidden="true"></span>
+        <span class="tab-label">Profile</span>
+      </a>
+    </nav>
+  </div>
+
+  <script src="news.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,3 +1,0 @@
-# Sqills News
-
-Initializing…

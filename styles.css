@@ -444,6 +444,123 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-primary);
 }
 .article-body p { margin: 0 0 var(--s-16); }
+.article-body > *:first-child { margin-top: 0; }
+.article-body > *:last-child { margin-bottom: 0; }
+
+.article-body h1,
+.article-body h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.22;
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+  margin: var(--s-28) 0 var(--s-12);
+}
+.article-body h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  margin: var(--s-24) 0 var(--s-8);
+}
+.article-body h4,
+.article-body h5,
+.article-body h6 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: var(--s-20) 0 var(--s-8);
+}
+
+.article-body a {
+  color: var(--text-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.article-body a:hover { text-decoration-thickness: 2px; }
+
+.article-body strong, .article-body b { font-weight: 600; color: var(--text-primary); }
+.article-body em, .article-body i { font-style: italic; }
+
+.article-body ul, .article-body ol {
+  margin: 0 0 var(--s-16);
+  padding-left: var(--s-24);
+}
+.article-body li { margin: 0 0 var(--s-4); }
+.article-body li > p { margin-bottom: var(--s-8); }
+
+.article-body blockquote {
+  margin: var(--s-20) 0;
+  padding-left: var(--s-16);
+  border-left: 3px solid var(--primary-500);
+  color: var(--text-body);
+  font-style: italic;
+}
+
+.article-body img,
+.article-body video,
+.article-body iframe,
+.article-body figure {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--s-16) 0;
+}
+.article-body figure { margin: var(--s-20) 0; }
+.article-body figcaption {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: var(--s-4);
+  font-style: italic;
+}
+
+.article-body hr {
+  border: 0;
+  height: 1px;
+  background: var(--border-default);
+  margin: var(--s-28) 0;
+}
+
+.article-body code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: var(--surface-subtle);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.article-body pre {
+  margin: var(--s-16) 0;
+  padding: var(--s-16);
+  background: var(--surface-subtle);
+  border-radius: var(--r-field);
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.article-body pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--s-16) 0;
+  font-size: 14px;
+}
+.article-body th, .article-body td {
+  text-align: left;
+  padding: var(--s-8) var(--s-12);
+  border-bottom: 1px solid var(--border-default);
+}
+.article-body th { font-weight: 600; }
 
 /* — Outbound block — DS Card (sharp) + Primary CTA inside — */
 .outbound {

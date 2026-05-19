@@ -19,6 +19,8 @@ import { load } from "cheerio";
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { JSDOM } from "jsdom";
+import { Readability } from "@mozilla/readability";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Config
@@ -139,6 +141,7 @@ async function adapterAnthropic(source) {
       link: abs(href, source.url),
       description: dek,
       image: null,
+      body_html: null,
     });
   });
 
@@ -162,6 +165,7 @@ async function adapterRSS(source) {
       link: it.link || "",
       description: stripHTML(it.contentSnippet || it.summary || it.content || ""),
       image: it.enclosure?.url || null,
+      body_html: null,
     };
   });
 }
@@ -172,13 +176,26 @@ const ADAPTERS = {
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Enrich — og:image
+// Enrich — single per-article fetch yields BOTH og:image AND body_html
 // ──────────────────────────────────────────────────────────────────────────────
 
-async function fetchOgImage(pageUrl) {
-  if (!pageUrl) return null;
+/**
+ * One HTTP fetch per article — extract og:image + Readability-parsed body.
+ * Readability returns Reader-Mode-style clean HTML (no scripts, no nav, no ads).
+ */
+async function fetchArticleMetadata(pageUrl) {
+  if (!pageUrl) return { image: null, body_html: null };
+
+  let html;
   try {
-    const html = await fetchText(pageUrl);
+    html = await fetchText(pageUrl);
+  } catch {
+    return { image: null, body_html: null };
+  }
+
+  // og:image via cheerio (cheap)
+  let image = null;
+  try {
     const $ = load(html);
     const candidates = [
       $('meta[property="og:image:secure_url"]').attr("content"),
@@ -188,21 +205,61 @@ async function fetchOgImage(pageUrl) {
       $('meta[name="twitter:image:src"]').attr("content"),
     ];
     const found = candidates.find((v) => v && v.trim().length > 0);
-    return found ? abs(found, pageUrl) : null;
-  } catch {
-    return null;
-  }
+    image = found ? abs(found, pageUrl) : null;
+  } catch {}
+
+  // body via Readability (heavier — jsdom + algorithm)
+  let body_html = null;
+  try {
+    const dom = new JSDOM(html, { url: pageUrl });
+    const reader = new Readability(dom.window.document);
+    const parsed = reader.parse();
+    if (parsed && parsed.content) {
+      body_html = sanitizeReadabilityHTML(parsed.content);
+    }
+  } catch {}
+
+  return { image, body_html };
 }
 
-async function enrichWithImages(items) {
+/**
+ * Light pass to remove anything Readability might have left through that we
+ * don't want in our rendering context. Readability already strips scripts and
+ * most chrome, but it preserves iframes and a few attributes we'd rather not
+ * embed inside the prototype's article column.
+ */
+function sanitizeReadabilityHTML(html) {
+  const $ = load(html, { decodeEntities: false });
+
+  // Drop anything obviously dangerous or out-of-flow
+  $("script, style, iframe, noscript, form, button, input").remove();
+
+  // Strip on* event handlers, javascript: URLs, and unsafe attributes
+  $("*").each((_, el) => {
+    if (!el.attribs) return;
+    for (const name of Object.keys(el.attribs)) {
+      if (name.toLowerCase().startsWith("on")) delete el.attribs[name];
+      const val = el.attribs[name];
+      if (typeof val === "string" && /^\s*javascript:/i.test(val)) {
+        delete el.attribs[name];
+      }
+    }
+  });
+
+  // Readability sometimes wraps content in a top-level <div id="readability-page-1">.
+  // Unwrap by returning innerHTML of body to keep markup flat.
+  return $("body").html() || "";
+}
+
+async function enrichItems(items) {
   const queue = items.slice();
   const workers = Array.from({ length: OG_IMAGE_CONCURRENCY }, async () => {
     while (queue.length) {
       const item = queue.shift();
-      if (item.image) continue; // adapter already supplied one
-      const img = await fetchOgImage(item.link);
-      item.image = img;
-      process.stdout.write(img ? "·" : "x");
+      const { image, body_html } = await fetchArticleMetadata(item.link);
+      if (!item.image && image) item.image = image;
+      item.body_html = body_html;
+      process.stdout.write(body_html ? "·" : "x");
     }
   });
   await Promise.all(workers);
@@ -238,8 +295,8 @@ async function main() {
     process.exit(1);
   }
 
-  process.stdout.write(`[og:image] fetching for ${all.length} items `);
-  await enrichWithImages(all);
+  process.stdout.write(`[enrich] og:image + body for ${all.length} items `);
+  await enrichItems(all);
 
   all.sort((a, b) => b.date_iso.localeCompare(a.date_iso));
 
@@ -259,9 +316,10 @@ async function main() {
   writeFileSync(join(__dirname, "news.js"), out);
 
   const withImg = all.filter((i) => i.image).length;
+  const withBody = all.filter((i) => i.body_html).length;
   const ms = Date.now() - started;
   console.log(
-    `\nWrote news.js — ${all.length} items, ${withImg} with images, ${ms} ms.`
+    `\nWrote news.js — ${all.length} items, ${withImg} with images, ${withBody} with body, ${ms} ms.`
   );
 }
 

@@ -100,12 +100,15 @@
       ? '<p class="article-dek">' + escapeHTML(item.description) + '</p>'
       : '';
 
-    const body = [
-      '<div class="article-body">',
-      '  <p>This is a prototype rendering of a Sqills News article page. The original publisher (' + escapeHTML(item.source) + ') hosts the full body, embedded media, and any partner quotes for this story.</p>',
-      '  <p>Once Sqills News gains its content pipeline, summaries authored in Sqills voice will replace this placeholder. For now, the card above shows the headline and teaser; the link below opens the full story on the original source.</p>',
-      '</div>'
-    ].join('\n');
+    // Body: Readability-extracted body_html when present; fall back to a short
+    // note + prominent outbound CTA below if extraction missed.
+    const body = item.body_html
+      ? '<div class="article-body">' + item.body_html + '</div>'
+      : [
+          '<div class="article-body">',
+          '  <p>Full body is on the original publisher’s site — we couldn’t auto-extract it here. Use the link below to read the original story on ' + escapeHTML(item.source) + '.</p>',
+          '</div>'
+        ].join('\n');
 
     const category = item.category
       ? '<span class="card-category">' + escapeHTML(item.category) + '</span>'

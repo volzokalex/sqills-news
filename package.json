@@ -9,7 +9,9 @@
     "serve": "python3 -m http.server 8791"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
     "cheerio": "^1.0.0",
+    "jsdom": "^29.1.1",
     "rss-parser": "^3.13.0"
   }
 }

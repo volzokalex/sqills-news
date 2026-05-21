@@ -31,13 +31,28 @@ const UA =
   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36 SqillsNewsBot/0.1";
 
 const FETCH_TIMEOUT_MS = 12_000;
-const PER_SOURCE_LIMIT = 4;
-const OG_IMAGE_CONCURRENCY = 3;
+const PER_SOURCE_LIMIT = 3;
+const OG_IMAGE_CONCURRENCY = 4;
+const MAX_AGE_DAYS = 120;  // soft age cap — skip items older than this
 
+// Editorial canon — vendor blogs + curated independent voices. All free, all
+// public RSS / HTML. Order here is presentation hint, not strict priority.
 const SOURCES = [
-  { name: "Anthropic",    type: "html", url: "https://www.anthropic.com/news" },
-  { name: "DeepMind",     type: "rss",  url: "https://deepmind.google/blog/rss.xml" },
-  { name: "Hugging Face", type: "rss",  url: "https://huggingface.co/blog/feed.xml" },
+  // ─── Tier 0 — vendor / lab official announcements ────────────────────────
+  { name: "Anthropic",        type: "html", url: "https://www.anthropic.com/news" },
+  { name: "DeepMind",         type: "rss",  url: "https://deepmind.google/blog/rss.xml" },
+  { name: "Hugging Face",     type: "rss",  url: "https://huggingface.co/blog/feed.xml" },
+
+  // ─── Tier 1 — independent voices (long-form analysis / weekly essays) ────
+  { name: "Simon Willison",   type: "rss",  url: "https://simonwillison.net/atom/everything/" },
+  { name: "Ethan Mollick",    type: "rss",  url: "https://www.oneusefulthing.org/feed" },
+  { name: "Lilian Weng",      type: "rss",  url: "https://lilianweng.github.io/index.xml" },
+  { name: "Sebastian Raschka",type: "rss",  url: "https://magazine.sebastianraschka.com/feed" },
+  { name: "Eugene Yan",       type: "rss",  url: "https://eugeneyan.com/rss/" },
+  { name: "Stratechery",      type: "rss",  url: "https://stratechery.com/feed/" },
+  { name: "Hamel Husain",     type: "rss",  url: "https://hamel.dev/index.xml" },
+  { name: "Platformer",       type: "rss",  url: "https://www.platformer.news/rss/" },
+  { name: "Import AI",        type: "rss",  url: "https://importai.substack.com/feed" },
 ];
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -274,6 +289,10 @@ async function main() {
   const started = Date.now();
   const all = [];
 
+  const cutoff = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+
   for (const source of SOURCES) {
     const adapter = ADAPTERS[source.type];
     process.stdout.write(`[${source.name}] fetching… `);
@@ -281,6 +300,7 @@ async function main() {
       const raw = await adapter(source);
       const picked = raw
         .filter((it) => it.title && it.link && it.date_iso)
+        .filter((it) => it.date_iso >= cutoff)   // skip items older than MAX_AGE_DAYS
         .sort((a, b) => b.date_iso.localeCompare(a.date_iso))
         .slice(0, PER_SOURCE_LIMIT);
       console.log(`ok — ${picked.length} of ${raw.length}`);

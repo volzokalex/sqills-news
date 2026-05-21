@@ -23,7 +23,7 @@
     if (!root) return;
 
     const filtered = filter && filter !== "all"
-      ? items.filter(function (it) { return it.source === filter; })
+      ? items.filter(function (it) { return it.tags && it.tags.includes(filter); })
       : items;
 
     if (filtered.length === 0) {
@@ -57,17 +57,6 @@
         '</a>'
       ].join('\n');
     }).join('\n');
-  }
-
-  function renderFilters() {
-    const container = document.getElementById('filters');
-    if (!container) return;
-    const sources = Array.from(new Set(items.map(function (i) { return i.source; }))).sort();
-    container.innerHTML = [
-      '<button class="tag tag-active" data-filter="all" type="button">All</button>'
-    ].concat(sources.map(function (s) {
-      return '<button class="tag" data-filter="' + escapeHTML(s) + '" type="button">' + escapeHTML(s) + '</button>';
-    })).join('');
   }
 
   function wireFilters() {
@@ -151,7 +140,6 @@
 
   // ─── Bootstrap ────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function () {
-    renderFilters();
     renderFeed('all');
     wireFilters();
     renderArticle();

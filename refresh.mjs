@@ -34,26 +34,90 @@ const FETCH_TIMEOUT_MS = 12_000;
 const PER_SOURCE_LIMIT = 3;
 const OG_IMAGE_CONCURRENCY = 4;
 const MAX_AGE_DAYS = 120;  // soft age cap — skip items older than this
+const DEK_MAX_CHARS = 220; // hard cap to prevent feed-card overflow
 
-// Editorial canon — vendor blogs + curated independent voices. All free, all
-// public RSS / HTML. Order here is presentation hint, not strict priority.
+// Editorial canon — vendor blogs + curated voices + aggregators.
+// Each source carries default interest-tags; auto-tagger adds more via keyword
+// match against title + description.
 const SOURCES = [
   // ─── Tier 0 — vendor / lab official announcements ────────────────────────
-  { name: "Anthropic",        type: "html", url: "https://www.anthropic.com/news" },
-  { name: "DeepMind",         type: "rss",  url: "https://deepmind.google/blog/rss.xml" },
-  { name: "Hugging Face",     type: "rss",  url: "https://huggingface.co/blog/feed.xml" },
+  { name: "Anthropic",        type: "html", url: "https://www.anthropic.com/news",
+    defaultTags: ["builders"] },
+  { name: "DeepMind",         type: "rss",  url: "https://deepmind.google/blog/rss.xml",
+    defaultTags: ["builders"] },
+  { name: "Hugging Face",     type: "rss",  url: "https://huggingface.co/blog/feed.xml",
+    defaultTags: ["builders"] },
 
   // ─── Tier 1 — independent voices (long-form analysis / weekly essays) ────
-  { name: "Simon Willison",   type: "rss",  url: "https://simonwillison.net/atom/everything/" },
-  { name: "Ethan Mollick",    type: "rss",  url: "https://www.oneusefulthing.org/feed" },
-  { name: "Lilian Weng",      type: "rss",  url: "https://lilianweng.github.io/index.xml" },
-  { name: "Sebastian Raschka",type: "rss",  url: "https://magazine.sebastianraschka.com/feed" },
-  { name: "Eugene Yan",       type: "rss",  url: "https://eugeneyan.com/rss/" },
-  { name: "Stratechery",      type: "rss",  url: "https://stratechery.com/feed/" },
-  { name: "Hamel Husain",     type: "rss",  url: "https://hamel.dev/index.xml" },
-  { name: "Platformer",       type: "rss",  url: "https://www.platformer.news/rss/" },
-  { name: "Import AI",        type: "rss",  url: "https://importai.substack.com/feed" },
+  { name: "Simon Willison",   type: "rss",  url: "https://simonwillison.net/atom/everything/",
+    defaultTags: ["builders"] },
+  { name: "Ethan Mollick",    type: "rss",  url: "https://www.oneusefulthing.org/feed",
+    defaultTags: ["beginners"] },
+  { name: "Lilian Weng",      type: "rss",  url: "https://lilianweng.github.io/index.xml",
+    defaultTags: ["builders"] },
+  { name: "Sebastian Raschka",type: "rss",  url: "https://magazine.sebastianraschka.com/feed",
+    defaultTags: ["builders"] },
+  { name: "Eugene Yan",       type: "rss",  url: "https://eugeneyan.com/rss/",
+    defaultTags: ["builders"] },
+  { name: "Stratechery",      type: "rss",  url: "https://stratechery.com/feed/",
+    defaultTags: ["founders"] },
+  { name: "Hamel Husain",     type: "rss",  url: "https://hamel.dev/index.xml",
+    defaultTags: ["builders"] },
+  { name: "Platformer",       type: "rss",  url: "https://www.platformer.news/rss/",
+    defaultTags: ["founders"] },
+  { name: "Import AI",        type: "rss",  url: "https://importai.substack.com/feed",
+    defaultTags: ["builders"] },
+
+  // ─── Tier 2 — aggregator (leading-indicator / "gossip" coverage) ─────────
+  { name: "Smol AI",          type: "rss",  url: "https://news.smol.ai/rss.xml",
+    defaultTags: ["builders"] },
+
+  // ─── Tier 2 — workplace / founders cross-cut ────────────────────────────
+  { name: "Lenny's Newsletter",type: "rss", url: "https://www.lennysnewsletter.com/feed",
+    defaultTags: ["founders"] },
 ];
+
+// ─── Interest-tag keyword dictionaries ──────────────────────────────────────
+// Each tag's keyword list is matched (case-insensitive, substring) against
+// item.title + item.description. A hit adds the tag. Items always have at
+// least the source's defaultTags.
+const TAG_KEYWORDS = {
+  beginners: [
+    "intro to", "introduction to", "getting started", "what is ",
+    "primer", "explained", "for beginners", "fundamentals", "the basics",
+    "how to use", "guide to", "tutorial", "101", "starter",
+    "how to work with", "first steps",
+  ],
+  builders: [
+    " model", "api", "sdk", "agent", "agentic", "eval", "evaluation",
+    "fine-tun", "lora", "rag", "embedding", "vector", "inference",
+    "deploy", "production", "engineer", "developer", "open-source",
+    "context window", "tokens", "transformer", "pytorch", "benchmark",
+    "code", "github", "repo",
+  ],
+  design: [
+    "design", "designer", "figma", "midjourney", "stable diffusion",
+    "image generation", "image-gen", "creative", "illustration", "branding",
+    "dall-e", "dalle", "flux", "image-to-image", "logo", "typography",
+    "ui ", " ux ",
+  ],
+  video: [
+    "sora", "runway", "veo", "pika", "luma", "video model",
+    "video generation", "text-to-video", "video ai", "animation",
+    "video clip", "filmmaking",
+  ],
+  income: [
+    "monetize", "side hustle", "make money", "income", "freelance",
+    "client", "pricing", "mrr", "arr", "revenue", "subscription",
+    "earn", "passive income", "creator economy",
+  ],
+  founders: [
+    "founder", "startup", "raised", "series a", "series b", "series c",
+    "ipo", "fundraising", " vc ", "venture", "valuation", "founded",
+    "acquisition", "acquired", "merger", "strategy", "go-to-market",
+    "product-market fit", "pmf", "company building",
+  ],
+};
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -94,6 +158,24 @@ function displayFromIso(iso) {
 function stripHTML(s) {
   if (!s) return "";
   return s.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function truncateDek(s, max = DEK_MAX_CHARS) {
+  if (!s) return "";
+  if (s.length <= max) return s;
+  const cut = s.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  const head = lastSpace > 100 ? cut.slice(0, lastSpace) : cut;
+  return head.replace(/[\s.,;:!?\-—]+$/, "") + "…";
+}
+
+function tagItem(item, defaultTags) {
+  const tags = new Set(defaultTags || []);
+  const haystack = ((item.title || "") + " " + (item.description || "")).toLowerCase();
+  for (const [tag, kws] of Object.entries(TAG_KEYWORDS)) {
+    if (kws.some((k) => haystack.includes(k))) tags.add(tag);
+  }
+  return Array.from(tags);
 }
 
 async function fetchText(url) {
@@ -146,7 +228,8 @@ async function adapterAnthropic(source) {
     const date_iso = isoFromAny(datetime) || isoFromAny(dateText);
     if (!date_iso) return; // skip non-dated entries
 
-    items.push({
+    const dekSafe = truncateDek(dek);
+    const item = {
       id: slugify(href.replace(/^\/news\//, "")),
       title,
       source: source.name,
@@ -154,10 +237,13 @@ async function adapterAnthropic(source) {
       date_iso,
       date_display: dateText || displayFromIso(date_iso),
       link: abs(href, source.url),
-      description: dek,
+      description: dekSafe,
       image: null,
       body_html: null,
-    });
+      tags: [],
+    };
+    item.tags = tagItem(item, source.defaultTags);
+    items.push(item);
   });
 
   return items;
@@ -170,7 +256,7 @@ async function adapterRSS(source) {
   const feed = await rssParser.parseURL(source.url);
   return (feed.items || []).map((it) => {
     const date_iso = isoFromAny(it.isoDate) || isoFromAny(it.pubDate);
-    return {
+    const item = {
       id: slugify(it.link?.split("/").filter(Boolean).pop() || it.title || ""),
       title: (it.title || "").trim(),
       source: source.name,
@@ -178,10 +264,13 @@ async function adapterRSS(source) {
       date_iso,
       date_display: date_iso ? displayFromIso(date_iso) : "",
       link: it.link || "",
-      description: stripHTML(it.contentSnippet || it.summary || it.content || ""),
+      description: truncateDek(stripHTML(it.contentSnippet || it.summary || it.content || "")),
       image: it.enclosure?.url || null,
       body_html: null,
+      tags: [],
     };
+    item.tags = tagItem(item, source.defaultTags);
+    return item;
   });
 }
 

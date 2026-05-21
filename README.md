@@ -11,8 +11,10 @@ fresh items. ~12 items in 6-7 seconds, 100% image-hit rate on the current source
 
 ## Status
 
-- **Format:** continuous story-stream feed of individual articles (one of three formats
-  the spec will decide between; see notes at end).
+- **Format:** continuous story-stream feed of individual articles, filtered by
+  **interest tags** (Beginners / Builders / Design / Video / Income / Founders).
+  Each item auto-tagged during refresh via source default-tags + keyword match
+  against title/dek. Multi-tag per item.
 - **Layout:** mobile-first — 430px phone container centered on desktop; full-width on
   small screens. Top: Identity Band + screen title + filter row. Then the feed (or the
   article). No bottom-tab nav in this proto — it's a single-surface prototype, not the

@@ -36,61 +36,17 @@ const OG_IMAGE_CONCURRENCY = 4;
 const MAX_AGE_DAYS = 120;  // soft age cap — skip items older than this
 const DEK_MAX_CHARS = 220; // hard cap to prevent feed-card overflow
 
-// Editorial canon — vendor blogs + curated voices + aggregators.
-// Each source carries default interest-tags; auto-tagger adds more via keyword
-// match against title + description.
+// SINGLE SOURCE — Hacker News via Algolia search API, filtered to AI titles.
+// Algolia HN Search lets us query AI-related stories with a points threshold and
+// sort by date. Free, no auth. URL-encoded: `>` → %3E.
 const SOURCES = [
-  // ─── Tier 0 — vendor / lab official announcements ────────────────────────
-  { name: "Anthropic",        type: "html", url: "https://www.anthropic.com/news",
-    defaultTags: ["builders"] },
-  { name: "DeepMind",         type: "rss",  url: "https://deepmind.google/blog/rss.xml",
-    defaultTags: ["builders"] },
-  { name: "Hugging Face",     type: "rss",  url: "https://huggingface.co/blog/feed.xml",
-    defaultTags: ["builders"] },
-
-  // ─── Tier 1 — independent voices (long-form analysis / weekly essays) ────
-  { name: "Simon Willison",   type: "rss",  url: "https://simonwillison.net/atom/everything/",
-    defaultTags: ["builders"] },
-  { name: "Ethan Mollick",    type: "rss",  url: "https://www.oneusefulthing.org/feed",
-    defaultTags: ["beginners"] },
-  { name: "Lilian Weng",      type: "rss",  url: "https://lilianweng.github.io/index.xml",
-    defaultTags: ["builders"] },
-  { name: "Sebastian Raschka",type: "rss",  url: "https://magazine.sebastianraschka.com/feed",
-    defaultTags: ["builders"] },
-  { name: "Eugene Yan",       type: "rss",  url: "https://eugeneyan.com/rss/",
-    defaultTags: ["builders"] },
-  { name: "Stratechery",      type: "rss",  url: "https://stratechery.com/feed/",
-    defaultTags: ["founders"] },
-  { name: "Hamel Husain",     type: "rss",  url: "https://hamel.dev/index.xml",
-    defaultTags: ["builders"] },
-  { name: "Platformer",       type: "rss",  url: "https://www.platformer.news/rss/",
-    defaultTags: ["founders"] },
-  { name: "Import AI",        type: "rss",  url: "https://importai.substack.com/feed",
-    defaultTags: ["builders"] },
-
-  // ─── Tier 2 — aggregators (broad daily / weekly digests) ────────────────
-  { name: "Smol AI",          type: "rss",  url: "https://news.smol.ai/rss.xml",
-    defaultTags: ["builders"] },
-  { name: "TLDR AI",          type: "rss",  url: "https://tldr.tech/api/rss/ai",
-    defaultTags: ["beginners", "builders"] },
-  { name: "VentureBeat AI",   type: "rss",  url: "https://venturebeat.com/category/ai/feed/",
-    defaultTags: ["founders", "builders"] },
-  { name: "Last Week in AI",  type: "rss",  url: "https://lastweekin.ai/feed",
-    defaultTags: ["builders"] },
-
-  // ─── Tier 2 — mainstream tech press (AI sections) ───────────────────────
-  { name: "TechCrunch AI",    type: "rss",  url: "https://techcrunch.com/category/artificial-intelligence/feed",
-    defaultTags: ["founders", "builders"] },
-  { name: "The Verge AI",     type: "rss",  url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-    defaultTags: ["beginners"] },
-
-  // ─── Tier 2 — workplace / founders cross-cut ────────────────────────────
-  { name: "Lenny's Newsletter",type: "rss", url: "https://www.lennysnewsletter.com/feed",
-    defaultTags: ["founders"] },
-
-  // ─── Tier 2 — design (rare in AI-news; catches creator-side stories) ────
-  { name: "Sidebar",          type: "rss",  url: "https://sidebar.io/feed.xml",
-    defaultTags: ["design"] },
+  {
+    name: "Hacker News",
+    type: "hn-algolia",
+    url: "https://hn.algolia.com/api/v1/search_by_date?tags=story&numericFilters=points%3E50&query=AI&hitsPerPage=80",
+    limit: 20,
+    defaultTags: ["builders"],
+  },
 ];
 
 // ─── Interest-tag keyword dictionaries ──────────────────────────────────────
@@ -290,9 +246,48 @@ async function adapterRSS(source) {
   });
 }
 
+/**
+ * Hacker News via Algolia. Returns AI-only stories ranked by date.
+ * Only items with an external `url` are kept (Ask HN / poll variants skipped).
+ */
+async function adapterHNAlgolia(source) {
+  const res = await fetch(source.url, {
+    headers: { "User-Agent": UA, "Accept": "application/json" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  // Conservative AI keyword set — strict enough to drop non-AI noise on HN.
+  const AI_KEYWORDS =
+    /\b(ai|a\.i\.|llm|gpt|chatgpt|claude|anthropic|openai|gemini|deepmind|hugging\s*face|midjourney|stable\s*diffusion|sora|runway|deepseek|qwen|mistral|llama|transformer|diffusion|fine[-\s]?tun(?:e|ed|ing)|rag|agent|machine\s*learning|deep\s*learning|neural\s*net)\b/i;
+
+  return (json.hits || [])
+    .filter((h) => h.title && AI_KEYWORDS.test(h.title))
+    .filter((h) => h.url) // drop Ask HN / Show HN text-only posts
+    .map((h) => {
+      const date_iso = isoFromAny(h.created_at);
+      const item = {
+        id: slugify(h.objectID),
+        title: (h.title || "").trim(),
+        source: source.name,
+        category: `${h.points || 0} pts · ${h.num_comments || 0} comments`,
+        date_iso,
+        date_display: date_iso ? displayFromIso(date_iso) : "",
+        link: h.url,
+        description: "",
+        image: null,
+        body_html: null,
+        tags: [],
+        hn_discussion: `https://news.ycombinator.com/item?id=${h.objectID}`,
+      };
+      item.tags = tagItem(item, source.defaultTags);
+      return item;
+    });
+}
+
 const ADAPTERS = {
   html: adapterAnthropic,
   rss: adapterRSS,
+  "hn-algolia": adapterHNAlgolia,
 };
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -400,6 +395,7 @@ async function main() {
 
   for (const source of SOURCES) {
     const adapter = ADAPTERS[source.type];
+    const limit = source.limit || PER_SOURCE_LIMIT;
     process.stdout.write(`[${source.name}] fetching… `);
     try {
       const raw = await adapter(source);
@@ -407,7 +403,7 @@ async function main() {
         .filter((it) => it.title && it.link && it.date_iso)
         .filter((it) => it.date_iso >= cutoff)   // skip items older than MAX_AGE_DAYS
         .sort((a, b) => b.date_iso.localeCompare(a.date_iso))
-        .slice(0, PER_SOURCE_LIMIT);
+        .slice(0, limit);
       console.log(`ok — ${picked.length} of ${raw.length}`);
       all.push(...picked);
     } catch (e) {

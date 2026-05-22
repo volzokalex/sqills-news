@@ -368,6 +368,16 @@ a { color: inherit; text-decoration: none; }
 }
 .card:active .card-cta::after { transform: translateX(3px); }
 
+/* Quiet footer line: domain · category · date */
+.card-footer {
+  margin: var(--s-12) 0 0;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
 .empty {
   padding: var(--s-52) var(--s-24);
   text-align: center;

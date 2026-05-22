@@ -38,21 +38,17 @@
       const dek = it.description
         ? '<p class="card-dek">' + escapeHTML(it.description) + '</p>'
         : '';
-      const category = it.category
-        ? '<span class="card-category">' + escapeHTML(it.category) + '</span>'
-        : '';
+      // Quiet footer: domain · category (HN points/comments) · date
+      const footerBits = [escapeHTML(domainOf(it.link))];
+      if (it.category) footerBits.push(escapeHTML(it.category));
+      footerBits.push(escapeHTML(it.date_display));
       return [
         '<a class="card" href="article.html?id=' + encodeURIComponent(it.id) + '">',
         '  ' + hero,
         '  <div class="card-body">',
-        '    <div class="card-meta">',
-        '      <span class="source-badge">' + escapeHTML(it.source) + '</span>',
-        '      ' + category,
-        '      <span class="card-date">' + escapeHTML(it.date_display) + '</span>',
-        '    </div>',
         '    <h2 class="card-title">' + escapeHTML(it.title) + '</h2>',
         '    ' + dek,
-        '    <span class="card-cta">Read</span>',
+        '    <p class="card-footer">' + footerBits.join(' · ') + '</p>',
         '  </div>',
         '</a>'
       ].join('\n');
@@ -88,41 +84,35 @@
       ? '<p class="article-dek">' + escapeHTML(item.description) + '</p>'
       : '';
 
-    // Body: Readability-extracted body_html when present; fall back to a short
-    // note + prominent outbound CTA below if extraction missed.
+    // Body: Readability-extracted body_html when present; fall back to a quiet
+    // note that the body wasn't extractable (footer attribution carries the link).
     const body = item.body_html
       ? '<div class="article-body">' + item.body_html + '</div>'
       : [
           '<div class="article-body">',
-          '  <p>Full body is on the original publisher’s site — we couldn’t auto-extract it here. Use the link below to read the original story on ' + escapeHTML(item.source) + '.</p>',
+          '  <p><em>Full body wasn’t auto-extractable from this source. The attribution below links to the original.</em></p>',
           '</div>'
         ].join('\n');
-
-    const category = item.category
-      ? '<span class="card-category">' + escapeHTML(item.category) + '</span>'
-      : '';
 
     const hero = item.image
       ? '<div class="article-hero"><img src="' + escapeHTML(item.image) + '" alt="" onerror="this.parentNode.classList.add(\'article-hero-broken\')"></div>'
       : '';
 
+    // Footer attribution: quiet single line, domain as inline link.
+    // Format: "Source: domain · via Hacker News · 123 pts · May 22, 2026"
+    const attrBits = [
+      'Source: <a href="' + escapeHTML(item.link) + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(domainOf(item.link)) + '</a>',
+      'via ' + escapeHTML(item.source),
+    ];
+    if (item.category) attrBits.push(escapeHTML(item.category));
+    attrBits.push(escapeHTML(item.date_display));
+
     root.innerHTML = [
       hero,
-      '<div class="article-meta">',
-      '  <span class="source-badge">' + escapeHTML(item.source) + '</span>',
-      '  ' + category,
-      '  <span class="card-date">' + escapeHTML(item.date_display) + '</span>',
-      '</div>',
       '<h1 class="article-title">' + escapeHTML(item.title) + '</h1>',
       dek,
       body,
-      '<div class="outbound">',
-      '  <div class="outbound-eyebrow">Read full story on</div>',
-      '  <div class="outbound-source">' + escapeHTML(item.source) + '</div>',
-      '  <div class="outbound-domain">' + escapeHTML(domainOf(item.link)) + '</div>',
-      '  <a class="cta-primary" href="' + escapeHTML(item.link) + '" target="_blank" rel="noopener noreferrer">Open original</a>',
-      '</div>',
-      '<p class="attr-note">Sqills aggregates AI news from publicly-available sources. The story above was published by <strong>' + escapeHTML(item.source) + '</strong> on ' + escapeHTML(item.date_display) + '. All credit and copyright remain with the original publisher.</p>'
+      '<p class="attr-note">' + attrBits.join(' · ') + '</p>'
     ].join('\n');
   }
 

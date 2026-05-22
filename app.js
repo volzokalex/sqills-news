@@ -59,18 +59,6 @@
     }).join('\n');
   }
 
-  function wireFilters() {
-    const tags = document.querySelectorAll('.filters .tag');
-    if (!tags.length) return;
-    tags.forEach(function (tag) {
-      tag.addEventListener('click', function () {
-        tags.forEach(function (t) { t.classList.remove('tag-active'); });
-        tag.classList.add('tag-active');
-        renderFeed(tag.dataset.filter);
-      });
-    });
-  }
-
   // ─── Article (article.html) ───────────────────────────────────
   function getParam(name) {
     const m = new URLSearchParams(window.location.search).get(name);
@@ -141,7 +129,6 @@
   // ─── Bootstrap ────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', function () {
     renderFeed('all');
-    wireFilters();
     renderArticle();
   });
 })();

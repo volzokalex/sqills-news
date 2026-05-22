@@ -68,13 +68,29 @@ const SOURCES = [
   { name: "Import AI",        type: "rss",  url: "https://importai.substack.com/feed",
     defaultTags: ["builders"] },
 
-  // ─── Tier 2 — aggregator (leading-indicator / "gossip" coverage) ─────────
+  // ─── Tier 2 — aggregators (broad daily / weekly digests) ────────────────
   { name: "Smol AI",          type: "rss",  url: "https://news.smol.ai/rss.xml",
     defaultTags: ["builders"] },
+  { name: "TLDR AI",          type: "rss",  url: "https://tldr.tech/api/rss/ai",
+    defaultTags: ["beginners", "builders"] },
+  { name: "VentureBeat AI",   type: "rss",  url: "https://venturebeat.com/category/ai/feed/",
+    defaultTags: ["founders", "builders"] },
+  { name: "Last Week in AI",  type: "rss",  url: "https://lastweekin.ai/feed",
+    defaultTags: ["builders"] },
+
+  // ─── Tier 2 — mainstream tech press (AI sections) ───────────────────────
+  { name: "TechCrunch AI",    type: "rss",  url: "https://techcrunch.com/category/artificial-intelligence/feed",
+    defaultTags: ["founders", "builders"] },
+  { name: "The Verge AI",     type: "rss",  url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+    defaultTags: ["beginners"] },
 
   // ─── Tier 2 — workplace / founders cross-cut ────────────────────────────
   { name: "Lenny's Newsletter",type: "rss", url: "https://www.lennysnewsletter.com/feed",
     defaultTags: ["founders"] },
+
+  // ─── Tier 2 — design (rare in AI-news; catches creator-side stories) ────
+  { name: "Sidebar",          type: "rss",  url: "https://sidebar.io/feed.xml",
+    defaultTags: ["design"] },
 ];
 
 // ─── Interest-tag keyword dictionaries ──────────────────────────────────────
